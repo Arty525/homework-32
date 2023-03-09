@@ -2,10 +2,11 @@
 #include <fstream>
 #include <vector>
 #include "nlohmann/json.hpp"
+#include <map>
 
 
 struct Film {
-	std::vector<std::string> cast;
+	std::map<std::string, std::string> cast;
 	std::string title;
 	std::string company;
 	std::string country;
@@ -21,7 +22,7 @@ std::vector<std::string> create(Film movie, nlohmann::json description, nlohmann
 	//Green Mile//
 	movie.title = "Green Mile";
 	movie.year = 1999;
-	movie.cast = { "Tom Hanks - Paul Edgecomb", "Mikle Clark Duncan - John Koffie", "David Mors - Brut <Brute> Howell", "Bonney Hunt  - Janise Edgecomb", "James Cromwell - Hall Murse" };
+	movie.cast = { {"Tom Hanks", "Paul Edgecomb"}, {"Mikle Clark Duncan", "John Koffie"}, {"David Mors", "Brut <Brute> Howell"}, {"Bonney Hunt", "Janise Edgecomb"}, {"James Cromwell", "Hall Murse"} };
 	movie.company = "Warner Brothers";
 	movie.country = "USA";
 	movie.screenwriter = { "Frank Darabont", "Stephen King" };
@@ -44,12 +45,12 @@ std::vector<std::string> create(Film movie, nlohmann::json description, nlohmann
 	};
 
 	titles.push_back(movie.title);
-	file << title << std::endl;
+	file << std::setw(2) << title << std::endl;
 
 	//The Terminal//
 	movie.title = "The Terminal";
 	movie.year = 2004;
-	movie.cast = { "Tom Hanks - Victor Navorski", "Catrine Zeta-Jhones - Amelia Warren", "Mikle Noori - Maks", "Konrad Pla  - Officer", "Mark Ivanir - Taxi-driver Horan" };
+	movie.cast = { {"Tom Hanks", "Victor Navorski"}, {"Catrine Zeta-Jhones", "Amelia Warren"}, {"Mikle Noori", "Maks"}, {"Konrad Pla", "Officer"}, {"Mark Ivanir", "Taxi-driver Horan"} };
 	movie.company = "NONE";
 	movie.country = "USA";
 	movie.screenwriter = { "Jeff Natanson", "Andry Nikkol", "Sasha Jervacy" };
@@ -72,12 +73,12 @@ std::vector<std::string> create(Film movie, nlohmann::json description, nlohmann
 	};
 
 	titles.push_back(movie.title);
-	file << title << std::endl;
+	file << std::setw(2) << title << std::endl;
 
 	//Forrest Gamp//
 	movie.title = "Forrest Gamp";
 	movie.year = 1994;
-	movie.cast = { "Tom Hanks - Forrest Gamp", "Robin Right - Jenny Carren", "Hary Sinise - lieutenant Den Taylor", "Sally Field - Mrs. Gamp", "Sam Anderson - Director Hankok" };
+	movie.cast = { {"Tom Hanks", "Forrest Gamp"}, {"Robin Right", "Jenny Carren"}, {"Hary Sinise", "lieutenant Den Taylor"}, {"Sally Field", "Mrs.Gamp"}, {"Sam Anderson", "Director Hankok"} };
 	movie.company = "NONE";
 	movie.country = "USA";
 	movie.screenwriter = { "Erik Rot", "Winston Groome" };
@@ -100,7 +101,7 @@ std::vector<std::string> create(Film movie, nlohmann::json description, nlohmann
 	};
 
 	titles.push_back(movie.title);
-	file << title << std::endl;
+	file << std::setw(2) << title << std::endl;
 
 	file.close();
 
@@ -116,14 +117,9 @@ void display(Film movie, nlohmann::json description, nlohmann::json title, std::
 		movie.company = description["Company"];
 		movie.country = description["Country"];
 		movie.year = description["Year"];
-
-		nlohmann::json::iterator json = description["Cast"].begin();
-		while (json != description["Cast"].end()) {
-			movie.cast.push_back(*json);
-			++json;
-		}
-
-		json = description["Screenwriter"].begin();
+		movie.cast = description["Cast"];
+		
+		nlohmann::json::iterator json = description["Screenwriter"].begin();
 		while (json != description["Screenwriter"].end()) {
 			movie.screenwriter.push_back(*json);
 			++json;
@@ -176,9 +172,10 @@ void display(Film movie, nlohmann::json description, nlohmann::json title, std::
 		std::cout << std::endl;
 
 		std::cout << "Cast:" << std::endl;
-		for (int i = 0; i <= movie.cast.size() - 1; ++i) {
-			std::cout << movie.cast[i] << std::endl;
+		for (std::map<std::string, std::string>::iterator it = movie.cast.begin(); it != movie.cast.end(); ++it) {
+			std::cout << it->first << " - " << it->second << std::endl;
 		}
+
 		movie.cast.clear();
 		std::cout << std::endl;
 		std::cout << "//////////////////////////////////////////////////" << std::endl;
@@ -198,16 +195,16 @@ void search(std::string actor, nlohmann::json description, Film movie, nlohmann:
 		std::string name;
 		file >> title;
 		description = title[titles[i]];
-		json = description["Cast"].begin();
-		while (json != description["Cast"].end()) {
-			name = *json;
-			if (name.rfind(actor) <= name.size() - name.rfind(actor) && name.substr(name.rfind(actor), actor.size()) == actor) {
-				actor = name.substr(0, name.rfind(" -"));
+		movie.cast = description["Cast"];
+		for (std::map<std::string, std::string>::iterator it = movie.cast.begin(); it != movie.cast.end(); ++it) {
+			name = it->first;
+			std::cout << name << std::endl;
+			if (name.substr(0, name.rfind(" ")) == actor || name.substr(name.rfind(" ")+1, name.size()) == actor || name == actor) {
+				actor = name;
 				std::cout << actor << std::endl;
 				find = true;
 				break;
 			}
-			++json;
 		}
 	}
 
@@ -217,18 +214,19 @@ void search(std::string actor, nlohmann::json description, Film movie, nlohmann:
 		for (int i = 0; i < titles.size(); ++i) {
 			file >> title;
 			description = title[titles[i]];
-			json = description["Cast"].begin();
-			while (json != description["Cast"].end()) {
+			movie.cast = description["Cast"];
+			for (std::map<std::string, std::string>::iterator it = movie.cast.begin(); it != movie.cast.end(); ++it) {
 				std::string name;
-				name = *json;
-				if (name.rfind(actor) <= name.size() - name.rfind(actor) && name.substr(name.rfind(actor), actor.size()) == actor) {
+				name = it->first;
+				if (name == actor) {
 					if (role.empty()) {
 						role = description["Title"];
 						role += ": ";
 					}
-					role += name.substr(actor.size() + 3);
+					role += it->first;
+					role += " - ";
+					role += it->second;
 				}
-				++json;
 			}
 			if (!role.empty()) {
 				movies.push_back(role);
