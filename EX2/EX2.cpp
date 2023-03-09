@@ -198,7 +198,6 @@ void search(std::string actor, nlohmann::json description, Film movie, nlohmann:
 		movie.cast = description["Cast"];
 		for (std::map<std::string, std::string>::iterator it = movie.cast.begin(); it != movie.cast.end(); ++it) {
 			name = it->first;
-			std::cout << name << std::endl;
 			if (name.substr(0, name.rfind(" ")) == actor || name.substr(name.rfind(" ")+1, name.size()) == actor || name == actor) {
 				actor = name;
 				std::cout << actor << std::endl;
